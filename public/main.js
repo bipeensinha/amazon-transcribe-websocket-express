@@ -152,7 +152,6 @@ function wireSocketEvents() {
       handleEventStreamMessage(messageBody);
     } else {
       transcribeException = true;
-      console.error(messageBody.Message);
       showError(messageBody.Message);
       toggleStartStop();
     }
@@ -164,7 +163,6 @@ function wireSocketEvents() {
     toggleStartStop();
   };
 
-  /*
   socket.onclose = function (closeEvent) {
     micStream.stop(); // the close event immediately follows the error event; only handle one.
 
@@ -176,7 +174,6 @@ function wireSocketEvents() {
       toggleStartStop();
     }
   };
-  */
 }
 
 var handleEventStreamMessage = function handleEventStreamMessage(messageJson) {
