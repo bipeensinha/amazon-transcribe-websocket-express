@@ -42,10 +42,10 @@ const app = express();
 app.use(express.static('public'));
 app.use(wsProxy); // add the proxy to express
 
-const server = app.listen(3000);
+const server = app.listen(80);
 server.on('upgrade', wsProxy.upgrade);
 
-require('open')('http://localhost:3000');
+require('open')('http://localhost');
 
 app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
