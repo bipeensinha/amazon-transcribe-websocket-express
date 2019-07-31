@@ -2,24 +2,40 @@ if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 
-const crypto = require('crypto');
-const express = require('express');
-const proxy = require('http-proxy-middleware');
-const v4                = require('./lib/aws-signature-v4'); // to generate our pre-signed URL
-
 const ACCESS_ID = process.env.ACCESS_ID;
 const SECRET_KEY = process.env.SECRET_KEY;
 
-const url = createPresignedUrl();
+const crypto = require('crypto');
+const express = require('express');
+const proxy = require('http-proxy-middleware');
+const v4 = require('./lib/aws-signature-v4'); // to generate our pre-signed URL
 
-var wsProxy = proxy('/ws', {
-    target: url,
+let region = 'us-east-1';
+let languageCode = 'en-US';
+let sampleRate = '44100'
+
+let proxyRouter = function (req) {
+    return createPresignedUrl();
+}
+
+let wsProxy = proxy('/ws', {
+    target: createPresignedUrl(),
     ws: true, // enable websocket proxy
     logLevel: 'debug',
     changeOrigin: true,
     pathRewrite: {
-     '^/ws' : ''               // remove path.
+        '^/ws': '' // remove path.
     },
+
+    router: proxyRouter, //generate a fresh pre-signed URL for each connection
+
+    onError: function(err, req, res) {
+        res.writeHead(500, {
+            'Content-Type': 'text/plain'
+        });
+    
+        res.end(err);
+    }
 });
 
 const app = express();
@@ -27,10 +43,7 @@ app.use(express.static('public'));
 app.use(wsProxy); // add the proxy to express
 
 const server = app.listen(3000);
-server.on('upgrade', wsProxy.upgrade); // optional: upgrade externally
-
-console.log('[DEMO] Server: listening on port 3000');
-console.log('[DEMO] Opening: http://localhost:3000');
+server.on('upgrade', wsProxy.upgrade);
 
 require('open')('http://localhost:3000');
 
@@ -38,16 +51,22 @@ app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
 });
 
+app.get('/stop', function (request, response) {});
+
+app.get('/region/:region', function (request, response) {
+    region = request.params.region;
+    response.sendStatus(200);
+});
+
+app.get('/language/:languageCode', function (request, response) {
+    languageCode = request.params.languageCode;
+    response.sendStatus(200);
+});
+
 function createPresignedUrl() {
-    let region = 'us-west-2';
-    let languageCode = 'en-US';
-    let sampleRate = '44100'
-    
     let query = "language-code=" + languageCode + "&media-encoding=pcm&sample-rate=" + sampleRate;
 
     let endpoint = "transcribestreaming." + region + ".amazonaws.com:8443";
-
-    console.log(endpoint);
 
     // get a preauthenticated URL that we can use to establish our WebSocket
     return v4.createPresignedURL(
