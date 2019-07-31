@@ -18,7 +18,11 @@ let proxyRouter = function (req) {
     return createPresignedUrl();
 }
 
-let wsProxy = proxy('/ws', {
+var proxyFilter = function(pathname, req) {
+    return pathname.match('^/ws') && req.method === 'GET'
+  }
+
+let wsProxy = proxy(proxyFilter, {
     target: createPresignedUrl(),
     ws: true, // enable websocket proxy
     logLevel: 'debug',
