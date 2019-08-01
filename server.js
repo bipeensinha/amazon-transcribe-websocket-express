@@ -45,11 +45,10 @@ let wsProxy = proxy(proxyFilter, {
 const app = express();
 app.use(express.static('public'));
 app.use(wsProxy); // add the proxy to express
+app.set('port', (process.env.PORT || 5000));
 
-const server = app.listen(app.set('port', (process.env.PORT || 5000)));
+const server = app.listen();
 server.on('upgrade', wsProxy.upgrade);
-
-require('open')('http://localhost');
 
 app.get('/', function (request, response) {
     response.sendFile(__dirname + '/index.html');
