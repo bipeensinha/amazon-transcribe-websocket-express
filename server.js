@@ -12,7 +12,7 @@ const v4 = require('./lib/aws-signature-v4'); // to generate our pre-signed URL
 
 let region = 'us-east-1';
 let languageCode = 'en-US';
-let sampleRate = '44100'
+let sampleRate;
 
 let proxyRouter = function (req) {
     return createPresignedUrl();
@@ -62,6 +62,12 @@ app.get('/region/:region', function (request, response) {
 
 app.get('/language/:languageCode', function (request, response) {
     languageCode = request.params.languageCode;
+    
+    if(languageCode=="en-US" || languageCode=="es-US")
+        sampleRate = 44100
+    else
+        sampleRate = 8000;
+
     response.sendStatus(200);
 });
 
