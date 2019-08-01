@@ -46,7 +46,7 @@ const app = express();
 app.use(express.static('public'));
 app.use(wsProxy); // add the proxy to express
 
-const server = app.listen(80);
+app.set('port', (process.env.PORT || 8000));
 server.on('upgrade', wsProxy.upgrade);
 
 require('open')('http://localhost');
