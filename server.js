@@ -45,9 +45,8 @@ let wsProxy = proxy(proxyFilter, {
 const app = express();
 app.use(express.static('public'));
 app.use(wsProxy); // add the proxy to express
-app.set('port', (process.env.PORT || 5000));
 
-const server = app.listen();
+const server = app.listen(process.env.PORT || 5000);
 server.on('upgrade', wsProxy.upgrade);
 
 app.get('/', function (request, response) {
